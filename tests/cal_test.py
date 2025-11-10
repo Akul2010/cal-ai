@@ -1,4 +1,4 @@
-# run this to start the assistant (use tests/cli.py for testing the plugin core)
+# run this to start the assistant (use plugin_test.py for testing the plugin core)
 
 import argparse
 import os
