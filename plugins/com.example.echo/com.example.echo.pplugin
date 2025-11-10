@@ -1,0 +1,22 @@
+{
+  "name": "com.example.echo",
+  "version": "1.0.0",
+  "language": "nodejs",
+  "entry": "echo_plugin.js",
+  "exports": ["echo"],
+  "intents": {
+    "echo": {
+      "export": "echo",
+      "keywords": ["echo","repeat"],
+      "examples": ["say hello","repeat after me"],
+      "slots": {
+        "text": {
+          "prompt": "What should I echo?",
+          "required": true,
+          "validator": null
+        }
+      }
+    }
+  },
+  "requires": []
+}

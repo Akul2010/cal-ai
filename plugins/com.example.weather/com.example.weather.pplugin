@@ -1,0 +1,23 @@
+{
+  "name": "com.example.weather",
+  "version": "1.0.0",
+  "language": "python3",
+  "entry": "weather_plugin.py",
+  "exports": ["get_weather"],
+  "intents": {
+    "get_weather": {
+      "export": "get_weather",
+      "keywords": ["weather","forecast"],
+      "examples": ["what's the weather", "forecast for paris"],
+      "confirm_template": "Get weather for {city}?",
+      "slots": {
+        "city": {
+          "prompt": "Which city?",
+          "required": true,
+          "validator": null
+        }
+      }
+    }
+  },
+  "requires": []
+}

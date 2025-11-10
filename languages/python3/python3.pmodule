@@ -1,0 +1,8 @@
+{
+  "type": "language",
+  "name": "python3",
+  "version": "0.1.0",
+  "runtime": "python",
+  "runtime_version": "3.11.5",
+  "loader": "loader.py"
+}

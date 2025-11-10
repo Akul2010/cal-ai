@@ -1,0 +1,8 @@
+{
+  "type": "language",
+  "name": "nodejs",
+  "version": "0.1.0",
+  "runtime": "node",
+  "runtime_version": "20.6.0",
+  "loader": "loader.py"
+}
