@@ -9,7 +9,7 @@ from tools.semver_utils import Version
 class RuntimeManager:
     """
     Discovers system runtimes (python/node/go) and otherwise creates a cross-platform simulated runtime.
-    Stores installations under base_dir (default /cal_ai/.cal_runtimes).
+    Stores installations under base_dir (default /cal_ai/cal_runtimes).
     """
     def __init__(self, base_dir=None, policy=None):
         # default base dir under workspace root if provided, else /cal_ai

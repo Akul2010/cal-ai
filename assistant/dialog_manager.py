@@ -92,14 +92,14 @@ class DialogManager:
                 # find next required
                 next_name, next_def = self._next_required(intent)
                 if next_name:
-                    ans = self.voice.listen_text(next_def.get('prompt') + " ")
+                    ans = self.voice.listen(next_def.get('prompt') + " ")
                     ok = self._validate_regex(next_def.get('validator'), ans.strip())
                     if not ok:
-                        self.voice.speak_text("I didn't get that.")
-                        retry = self.voice.listen_text(next_def.get('prompt') + " ")
+                        self.voice.speak("I didn't get that.")
+                        retry = self.voice.listen(next_def.get('prompt') + " ")
                         ok = self._validate_regex(next_def.get('validator'), retry.strip())
                         if not ok:
-                            self.voice.speak_text("Cancelling request.")
+                            self.voice.speak("Cancelling request.")
                             self.session.state['current_intent'] = None
                             self.session.save()
                             return None
@@ -114,10 +114,10 @@ class DialogManager:
                     # confirm if needed
                     if intent.confirm_template:
                         text = intent.confirm_template.format(**self.session.state['filled_slots'])
-                        self.voice.speak_text(text)
-                        ans = self.voice.listen_text("(yes/no) ")
+                        self.voice.speak(text)
+                        ans = self.voice.listen("(yes/no) ")
                         if ans.strip().lower() not in ('yes','y','ok','sure'):
-                            self.voice.speak_text("Cancelled.")
+                            self.voice.speak("Cancelled.")
                             self.session.state['current_intent'] = None
                             self.session.save()
                             return None
@@ -142,14 +142,14 @@ class DialogManager:
         # prompt next required
         next_name, next_def = self._next_required(intent)
         if next_name:
-            ans = self.voice.listen_text(next_def.get('prompt') + " ")
+            ans = self.voice.listen(next_def.get('prompt') + " ")
             ok = self._validate_regex(next_def.get('validator'), ans.strip())
             if not ok:
-                self.voice.speak_text("I didn't understand.")
-                retry = self.voice.listen_text(next_def.get('prompt') + " ")
+                self.voice.speak("I didn't understand.")
+                retry = self.voice.listen(next_def.get('prompt') + " ")
                 ok = self._validate_regex(next_def.get('validator'), retry.strip())
                 if not ok:
-                    self.voice.speak_text("Cancelling.")
+                    self.voice.speak("Cancelling.")
                     self.session.state['current_intent'] = None
                     self.session.save()
                     return None
@@ -163,10 +163,10 @@ class DialogManager:
         if nr is None:
             if intent.confirm_template:
                 text = intent.confirm_template.format(**self.session.state['filled_slots'])
-                self.voice.speak_text(text)
-                ans = self.voice.listen_text("(yes/no) ")
+                self.voice.speak(text)
+                ans = self.voice.listen("(yes/no) ")
                 if ans.strip().lower() not in ('yes','y','ok','sure'):
-                    self.voice.speak_text("Cancelled.")
+                    self.voice.speak("Cancelled.")
                     self.session.state['current_intent'] = None
                     self.session.save()
                     return None
@@ -181,6 +181,6 @@ class DialogManager:
     def _call_plugin(self, intent, slots):
         # central call through registry
         try:
-            return self.core.registry.call_export(intent.plugin, intent.export, slots)
+            return self.core.run_plugin(intent.plugin, intent.export, slots)
         except Exception as e:
             return f"Plugin call failed: {e}"

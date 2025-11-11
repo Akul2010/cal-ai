@@ -17,7 +17,7 @@ class Core:
         self.base_dir = Path(base_dir)
         self.languages_dir = self.base_dir / "languages"
         self.plugins_dir = self.base_dir / "plugins"
-        self.runtime_dir = self.base_dir / ".cal_ai" / "runtimes"
+        self.runtime_dir = self.base_dir / "cal_ai" / "runtimes"
         self.language_modules = {}
         self.plugins = {}
         print("[core] initialized")
@@ -114,7 +114,7 @@ class Core:
     # ---------------------------------------------------------------------
     # Plugin execution
     # ---------------------------------------------------------------------
-    def run_plugin(self, name):
+    def run_plugin(self, name, *args, **kwargs):
         """Run a plugin by name and return its output."""
         if name not in self.plugins:
             return f"[core:error] Plugin '{name}' not found."
@@ -126,7 +126,7 @@ class Core:
             return f"[core:error] Language module '{lang}' missing."
 
         try:
-            return lm.run_code(plugin["info"])
+            return lm.run_code(plugin["info"], *args, **kwargs)
         except Exception as e:
             return f"[core:error] Failed to run plugin '{name}': {e}"
 

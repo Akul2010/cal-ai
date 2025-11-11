@@ -12,23 +12,23 @@ class Assistant:
         self.dialog = DialogManager(workspace, core, self.nlu, self.voice)
 
     def run_loop(self):
-        self.voice.speak_text("Hello — CAL assistant ready.")
+        self.voice.speak("Hello — CAL assistant ready.")
         try:
             while True:
-                text = self.voice.listen_text("You: ")
+                text = self.voice.listen("You: ")
                 if not text:
                     continue
                 if text.strip().lower() in ('exit','quit','stop'):
-                    self.voice.speak_text("Goodbye.")
+                    self.voice.speak("Goodbye.")
                     break
                 res = self.dialog.handle_utterance(text)
                 if res is None:
                     # fallback persona small talk
                     reply = self.persona.decorate(text, None)
-                    self.voice.speak_text(reply)
+                    self.voice.speak(reply)
                 else:
                     # decorate plugin response
                     decorated = self.persona.decorate(text, res)
-                    self.voice.speak_text(decorated)
+                    self.voice.speak(decorated)
         except KeyboardInterrupt:
-            self.voice.speak_text("Shutting down.")
+            self.voice.speak("Shutting down.")

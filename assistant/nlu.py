@@ -28,8 +28,8 @@ class NLU:
 
     def _build_from_manifests(self):
         self.intent_specs = []
-        for pname, pdata in self.core.registry.plugins.items():
-            manifest = pdata.get('manifest') or {}
+        for pname, pdata in self.core.plugins.items():
+            manifest = pdata.get('meta') or {}
             for iname, idef in (manifest.get('intents') or {}).items():
                 slots = {}
                 for sname, sdef in (idef.get('slots') or {}).items():

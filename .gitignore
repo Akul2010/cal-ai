@@ -1,3 +1,7 @@
+# Cal.ai files
+cal_runtimes/
+assistant_state.json
+
 # PyCharm files
 .idea
 
