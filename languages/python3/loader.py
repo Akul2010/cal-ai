@@ -2,6 +2,7 @@ import sys
 import subprocess
 import shutil
 import json
+import re
 from pathlib import Path
 
 class LanguageModule:
@@ -32,10 +33,17 @@ class LanguageModule:
                 return str(exe)
 
         # Otherwise fall back to system Python
-        system_python = shutil.which("python3") or shutil.which("python")
-        if not system_python:
-            raise FileNotFoundError("No Python runtime found on system.")
-        return system_python
+        for exe in ("python3", "python"):
+            path = shutil.which(exe)
+            if not path:
+                continue
+            try:
+                proc = subprocess.run([path, "--version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=2)
+                m = re.search(r"Python (\d+\.\d+\.\d+)", proc.stdout or "")
+                if m:
+                    return path
+            except Exception:
+                continue
 
     # ---------------------------------------------------------------------
     # Plugin loading
