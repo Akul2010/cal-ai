@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import shutil
+import json
 from pathlib import Path
 
 class LanguageModule:
@@ -54,12 +55,17 @@ class LanguageModule:
     # ---------------------------------------------------------------------
     # Execution
     # ---------------------------------------------------------------------
-    def run_code(self, plugin_info):
+    def run_code(self, plugin_info, *args, **kwargs):
         """Execute a Python plugin file and return stdout."""
         plugin_path = plugin_info["path"]
+        wrapper_path = Path(__file__).parent / "wrapper.py"
+        export_name = args[0] if args else None
+        slots = args[1] if len(args) > 1 else {}
+        slots_json = json.dumps(slots)
+        
         try:
             result = subprocess.run(
-                [self.python_exe, plugin_path],
+                [self.python_exe, str(wrapper_path), plugin_path, export_name, slots_json],
                 capture_output=True,
                 text=True
             )
