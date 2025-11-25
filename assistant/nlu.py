@@ -3,6 +3,7 @@ Type-free slots NLU (regex-only validators are in the dialog manager).
 Builds simple intent specs from plugin manifests and performs keyword/example matching.
 """
 
+import re
 from assistant.persona_engine import PersonaEngine
 
 class IntentSpec:
@@ -54,7 +55,6 @@ class NLU:
                 if kw.lower() in u:
                     # simple global slots
                     slots = {}
-                    import re
                     m = re.search(r'\b(?:in|for|at)\s+([A-Za-z0-9 \-]+)', utterance, re.IGNORECASE)
                     if m:
                         slots['location'] = m.group(1).strip()

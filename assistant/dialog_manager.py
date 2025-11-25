@@ -11,8 +11,6 @@ import json
 import time
 import re
 
-import os, json, time, re
-
 STATE_FILE = "assistant_state.json"
 
 class DialogSession:
@@ -29,7 +27,8 @@ class DialogSession:
         p = self._path()
         if os.path.exists(p):
             try:
-                data = json.load(open(p,'r'))
+                with open(p, 'r') as f:
+                    data = json.load(f)
                 if self.id in data:
                     self.state = data[self.id]
             except Exception:
@@ -40,12 +39,14 @@ class DialogSession:
         data = {}
         if os.path.exists(p):
             try:
-                data = json.load(open(p,'r'))
+                with open(p, 'r') as f:
+                    data = json.load(f)
             except Exception:
                 data = {}
         data[self.id] = self.state
         try:
-            json.dump(data, open(p,'w'), indent=2)
+            with open(p, 'w') as f:
+                json.dump(data, f, indent=2)
         except Exception:
             pass
 

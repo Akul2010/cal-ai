@@ -26,13 +26,15 @@ class RuntimeManager:
 
     def _load_cache(self):
         try:
-            return json.load(open(self.cache_file,'r'))
+            with open(self.cache_file, 'r') as f:
+                return json.load(f)
         except Exception:
             return {}
 
     def _save_cache(self):
         try:
-            json.dump(self.cache, open(self.cache_file,'w'), indent=2)
+            with open(self.cache_file, 'w') as f:
+                json.dump(self.cache, f, indent=2)
         except Exception:
             pass
 
@@ -152,7 +154,8 @@ class RuntimeManager:
         os.makedirs(target, exist_ok=True)
         meta = {'language':language, 'version':version, 'installed_at': time.time()}
         try:
-            json.dump(meta, open(os.path.join(target,'meta.json'),'w'), indent=2)
+            with open(os.path.join(target,'meta.json'),'w') as f:
+                json.dump(meta, f, indent=2)
         except Exception:
             pass
         bin_dir = os.path.join(target, 'bin')

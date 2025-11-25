@@ -1,47 +1,45 @@
 """
-Optional offline persona decorator.
-If `ctransformers` is installed and a GGUF model provided, it will use it.
-Otherwise it falls back to a trivial template-based persona.
+Persona engine that uses a local LLM (via LLMClient) for responses and intent detection.
 """
 
-from ctransformers import AutoModelForCausalLM
 import json
 import os
 import random
+from assistant.llm_client import LLMClient
 
 class PersonaEngine:
     """
-    Offline LLM wrapper for intent parsing and persona responses.
-    Uses ctransformers if available and model_path provided; otherwise falls back to template behavior.
+    Wrapper for intent parsing and persona responses using a local LLM.
     """
 
     def __init__(self, persona_path=None, model_path=None):
         self.persona = {"name":"CAL","style":"friendly, concise","wrap":"{reply}"}
         if persona_path and os.path.exists(persona_path):
             try:
-                self.persona = json.load(open(persona_path))
+                with open(persona_path) as f:
+                    self.persona = json.load(f)
             except Exception:
                 pass
-        self.model = None
-        if model_path:
-            try:
-                self.model = AutoModelForCausalLM.from_pretrained(model_path)
-                print("[CAL][persona] Loaded local LLM model:", model_path)
-            except Exception as e:
-                print("[CAL][persona] model load failed:", e)
-                self.model = None
+        
+        # Initialize LLM Client
+        self.llm = LLMClient(model_path)
 
     def decorate(self, user_text, plugin_result=None):
         """
-        Convert plugin result into persona-flavored text. If model available, calls it.
+        Convert plugin result into persona-flavored text.
         """
-        if self.model:
-            prompt = f"You are {self.persona.get('name')}, {self.persona.get('style')}.\nUser: {user_text}\nData: {plugin_result}\nReply briefly."
-            try:
-                out = self.model(prompt, max_new_tokens=80, temperature=0.6)
+        if self.llm.model:
+            # Construct a prompt suitable for TinyLlama
+            # <|system|>\n{system}</s>\n<|user|>\n{user}</s>\n<|assistant|>
+            sys_prompt = f"You are {self.persona.get('name')}. Style: {self.persona.get('style')}."
+            user_prompt = f"User said: {user_text}\nData: {plugin_result}\nReply to the user using the data."
+            
+            prompt = f"<|system|>\n{sys_prompt}</s>\n<|user|>\n{user_prompt}</s>\n<|assistant|>"
+            
+            out = self.llm.generate(prompt, max_new_tokens=100, temperature=0.6)
+            if out:
                 return out.strip()
-            except Exception:
-                pass
+
         # fallback templating
         if plugin_result is None:
             return random.choice(["Sorry, I don't know that yet.", "I couldn't find an answer."])
@@ -51,29 +49,31 @@ class PersonaEngine:
 
     def parse_intent(self, utterance, intent_specs):
         """
-        If a local model exists, ask it to choose an intent from intent_specs.
-        Otherwise fallback to keyword scoring.
-        intent_specs: list of IntentSpec-like dicts with keys: name, plugin, export, keywords, examples.
-        Returns (chosen_intent_spec, score) or (None,0).
+        Ask LLM to choose an intent from intent_specs.
         """
-        if self.model:
-            # Build a small prompt listing intents and examples
-            lines = ["You are an intent classifier. Choose the best matching intent name from the list."]
-            lines.append("Utterance: " + utterance)
-            lines.append("Intents:")
+        if self.llm.model:
+            # Build prompt
+            lines = ["<|system|>\nYou are an intent classifier. Choose the best matching intent from the list. Return ONLY the index number.</s>"]
+            
+            user_lines = [f"Utterance: {utterance}", "Intents:"]
             for i, spec in enumerate(intent_specs):
-                lines.append(f"{i}: name={spec['name']}, keywords={spec.get('keywords',[])}, examples={spec.get('examples',[])}")
-            lines.append("Respond with the integer index of the best intent (or -1 if none).")
-            prompt = "\n".join(lines)
-            try:
-                out = self.model(prompt, max_new_tokens=16, temperature=0.0)
-                out = out.strip()
-                # attempt to parse an int
-                idx = int(''.join(ch for ch in out if ch.isdigit() or ch == '-'))
-                if 0 <= idx < len(intent_specs):
-                    return intent_specs[idx], 1.0
-            except Exception:
-                pass
+                user_lines.append(f"{i}: {spec['name']} (keywords: {', '.join(spec.get('keywords',[])[:3])})")
+            user_lines.append("Index:")
+            
+            prompt = "\n".join(lines) + "\n<|user|>\n" + "\n".join(user_lines) + "</s>\n<|assistant|>"
+            
+            out = self.llm.generate(prompt, max_new_tokens=5, temperature=0.1)
+            if out:
+                # Clean up output to find the number
+                cleaned = ''.join(ch for ch in out if ch.isdigit())
+                if cleaned:
+                    try:
+                        idx = int(cleaned)
+                        if 0 <= idx < len(intent_specs):
+                            return intent_specs[idx], 1.0
+                    except ValueError:
+                        pass
+
         # fallback: simple scoring by keywords/examples
         best = None; best_score = 0
         u = utterance.lower()

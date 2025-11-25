@@ -1,3 +1,4 @@
 pyttsx3
 SpeechRecognition
 ctransformers
+huggingface_hub
